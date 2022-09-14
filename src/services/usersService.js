@@ -1,6 +1,7 @@
 const { Users } = require("../db/usersModel");
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const gravatar = require("gravatar");
 
 const signup = async (req, res, next) => {
   try {
@@ -8,18 +9,20 @@ const signup = async (req, res, next) => {
     const costFactor = 6;
     const hashPassword = await bcryptjs.hash(password, costFactor);
     const data = await Users.findOne({ email: email });
+    const avatarURL = gravatar.url(email);
     if (data)
       return res.json({
         status: "conflict",
         code: 409,
         message: "Email in use",
       });
-    const newUser = {
+    const newUser = new Users({
       password: hashPassword,
       email,
       subscription: "starter",
       token: null,
-    };
+      avatarURL,
+    });
     await newUser.save();
 
     res.json({
@@ -110,4 +113,25 @@ const getCurrentUser = async (req, res, next) => {
   }
 };
 
-module.exports = { signup, login, logout, getCurrentUser };
+const updateAvatar = async (req, res, next) => {
+  const newDataUser = await Users.findByIdAndUpdate(
+    { _id: req.user._id },
+    { avatarURL: req.file.path },
+    { new: true }
+  );
+
+  if (!newDataUser) {
+    res.status(401).json({
+      message: "Not authorized",
+    });
+  }
+  res.status(200).json({ avatarURL: newDataUser.avatarURL });
+};
+
+module.exports = {
+  signup,
+  login,
+  logout,
+  getCurrentUser,
+  updateAvatar,
+};
