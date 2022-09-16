@@ -10,6 +10,7 @@ const {
   logout,
   getCurrentUser,
   updateAvatar,
+  getUserByVerificationToken,
 } = require("../../services/usersService");
 const { uploadMiddlewar } = require("../../middlewares/uploadMiddlewar");
 const {
@@ -29,5 +30,7 @@ router.patch(
   compressImgMiddlewar,
   updateAvatar
 );
+router.get("/verify/:verificationToken", getUserByVerificationToken);
+router.post("/verify");
 
 module.exports = router;
